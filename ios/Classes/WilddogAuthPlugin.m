@@ -161,6 +161,30 @@ int nextHandle = 0;
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:nil error:nil];
     }
+  // 获取用户ID标识符
+  } else if ([@"getIdToken" isEqualToString:call.method]) {
+    // 获取用户token
+    [[WDGAuth auth].currentUser getTokenWithCompletion: ^(NSString *_Nullable token,
+                                                      NSError *_Nullable error) {
+      // error变量是否不为空，是则返回error变量，否则返回token变量
+      result(error != nil ? error.flutterError : token);
+    }];
+  // 绑定电子邮件和密码
+  } else if ([@"linkWithEmailAndPassword" isEqualToString:call.method]) {
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    NSString *email = call.arguments[@"email"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // 使用credentialWithEmail方法创建邮件和密码登录方式的WDGAuthCredential凭证
+    // 返回WDGAuthCredential对象，里面包含email&password登录方式凭证
+    WDGAuthCredential *credential =
+      [WDGWilddogAuthProvider credentialWithEmail:email password:password];
+    // linkWithCredential:方法将第三方帐号绑定到当前用户，以实现通过不同方式登录
+    [[WDGAuth auth].currentUser linkWithCredential:credential
+                                        completion:^(WDGUser *user, NSError *error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:user error:error];
+    }];
   // 开始监听认证状态
   } else if ([@"startListeningAuthState" isEqualToString:call.method]) {
     // 声明定义标识符变量

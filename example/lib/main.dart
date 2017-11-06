@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wilddog_auth/wilddog_auth.dart';
 
@@ -16,6 +17,31 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   Future<String> _message = new Future<String>.value('');
 
+  Future<String> _testSignInAnonymously() async {
+    final WilddogUser user = await _auth.signInAnonymously();
+    assert(user != null);
+    assert(user.isAnonymous);
+    assert(!user.isEmailVerified);
+    assert(await user.getIdToken() != null);
+    if (Platform.isIOS) {
+      // 匿名身份验证不会在iOS上显示认证提供方
+      assert(user.providerData.isEmpty);
+    } else if (Platform.isAndroid) {
+      // 匿名身份验证在Android上显示认证提供方
+      assert(user.providerData.length == 1);
+      assert(user.providerData[0].providerId == 'wilddog');
+      assert(user.providerData[0].uid != null);
+      assert(user.providerData[0].displayName == null);
+      assert(user.providerData[0].photoUrl == null);
+      assert(user.providerData[0].email == null);
+    }
+
+    final WilddogUser currentUser = await _auth.currentUser();
+    assert(user.uid == currentUser.uid);
+
+    return 'signInAnonymously succeeded: $user';
+  }
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -30,21 +56,21 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('测试匿名登录'),
                 onPressed: (){
                   setState((){
-                    //_message = _testSignInAnonymously();
+                    _message = _testSignInAnonymously();
                   });
                 },
             ),
             new MaterialButton(
               child: const Text('测试邮箱登录'),
               onPressed: (){
-                setState((){
+//                setState((){
                   //_message = _testSignInAnonymously();
-                });
+//                });
               },
             ),
-            new FutureBuilder<String>(
-                future: _message,
-                builder: null)
+//            new FutureBuilder<String>(
+//                future: _message,
+//                builder: null)
           ],
         ),
       ),
