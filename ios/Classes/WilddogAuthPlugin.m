@@ -28,18 +28,18 @@
 NSDictionary *toDictionary(id<WDGUserInfo> userInfo) {
   // 返回一个词典
   return @{
-    // providerID用于获取身份认证提供方的ID
+    // providerID用于获取用户登录方式，即身份认证提供方的ID
     //
     // Provider是身份认证提供方，WilddogAuth目前支持以下Provider
     // 电子邮件地址与密码、QQ、微信、微信公众号、微博
-    @"providerId" : userInfo.providerID,
-    // displayName用于获取用户的名称
+    @"providerId" : userInfo.providerID ?: [NSNull null],
+    // displayName用于获取用户名
     @"displayName" : userInfo.displayName ?: [NSNull null],
-    // uid用于获取用户的UID
-    @"uid" : userInfo.uid,
-    // photoURL用于获取用户的照片网址
-    @"photoUrl" : userInfo.photoURL.absoluteString ?: [NSNull null],
-    // email用于获取用户的电子邮箱
+    // uid用于获取用户ID
+    @"uid" : userInfo.uid ?: [NSNull null],
+    // photoURL用于获取用户头像
+    @"photoUrl" : [NSString stringWithFormat:@"%@",userInfo.photoURL],
+    // email用于获取用户邮箱地址
     @"email" : userInfo.email ?: [NSNull null],
   };
 }
