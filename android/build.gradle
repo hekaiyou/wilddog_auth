@@ -39,4 +39,8 @@ android {
     lintOptions {
         disable 'InvalidPackage'
     }
+    dependencies {
+        compile 'com.google.guava:guava:20.0'
+        compile 'com.wilddog.client:wilddog-auth-android:2.0.7'
+    }
 }

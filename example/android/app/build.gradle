@@ -39,6 +39,11 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
 }
 
 flutter {
