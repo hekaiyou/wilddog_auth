@@ -158,6 +158,9 @@ class WilddogAuth {
   ///
   /// 如果抛出异常，表示匿名帐户未启用，在Wilddog控制台的"身份认证"部分启用它们。
   /// 请参阅WDGAuthErrors以获取所有API方法通用的错误代码列表。
+  ///
+  /// 实现匿名身份认证需要在“控制面板 身份认证—登录方式”中打开匿名登录方式。
+  /// 匿名帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
   Future<WilddogUser> signInAnonymously() async {
     // 声明定义数据词典，并接收signInAnonymously方法调用的结果。
     final Map<String, dynamic> data = await channel.invokeMethod('signInAnonymously');
@@ -168,6 +171,9 @@ class WilddogAuth {
   }
 
   /// 更新用户邮箱或手机号认证密码。
+  ///
+  /// 更新当前登录认证用户的密码信息。
+  /// 需要注意的是，要更新密码，该用户必须最近登录过（重新进行身份认证）。
   Future<Null> updatePassword(String password) async {
     // 认证密码不能为空。
     assert(password != null);
@@ -181,6 +187,8 @@ class WilddogAuth {
   }
 
   /// 使用电子邮件和密码异步创建用户。
+  /// 
+  /// 创建一个新用户，创建成功后会自动登录
   Future<WilddogUser> createUserWithEmailAndPassword({
     @required String email,
     @required String password,
@@ -202,7 +210,7 @@ class WilddogAuth {
     return currentUser;
   }
 
-  /// 使用电子邮件和密码异步登录。
+  /// 使用电子邮箱和密码异步登录。
   Future<WilddogUser> signInWithEmailAndPassword({
     @required String email,
     @required String password,
@@ -225,12 +233,16 @@ class WilddogAuth {
   }
 
   /// 异步发送电子邮箱验证邮件。
+  ///
+  /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制邮箱验证邮件模版。
   Future<Null> sendEmailVerification() async {
     // 接收sendEmailVerification方法调用的结果。
     return await channel.invokeMethod("sendEmailVerification");
   }
 
   /// 异步发送重置密码邮件。
+  ///
+  /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制重置密码邮件模版。
   Future<Null> sendPasswordResetEmail(String email) async {
     // 帐号邮箱不能为空。
     assert(email != null);
@@ -244,6 +256,13 @@ class WilddogAuth {
   }
 
   /// 异步更新用户邮箱地址。
+  ///
+  /// 更新帐号邮箱，如果更新成功，本地缓存也会刷新。
+  /// 如果这个邮箱已经创建过用户，则会更新失败。
+  /// 需要注意的是，要更新用户的邮箱地址，该用户必须最近登录过。
+  ///
+  /// 更新邮箱地址会向旧邮箱发送提醒邮件，
+  /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制更新邮箱邮件模版。
   Future<Null> updateEmail(String email) async {
     // 帐号邮箱不能为空。
     assert(email != null);
@@ -257,12 +276,17 @@ class WilddogAuth {
   }
 
   /// 异步注销登录。
+  ///
+  /// 登出当前用户，清除登录数据。
   Future<Null> signOut() async {
     // 接收signOut方法调用的结果。
     return await channel.invokeMethod("signOut");
   }
 
   /// 异步重新进行邮箱帐户认证。
+  ///
+  /// 用户长时间未登录的情况下进行下列安全敏感操作会失败：
+  /// 删除帐户、设置主邮箱地址、更改密码。此时需要重新对用户进行身份认证。
   Future<Null> reauthenticateEmail({
     @required String email,
     @required String password,
@@ -281,6 +305,9 @@ class WilddogAuth {
   }
 
   /// 异步获取当前用户，如果没有则返回null。
+  ///
+  /// Wilddog Auth中用户有一组基本属性：Wilddog ID、主邮箱地址、名称、照片地址，
+  /// 获取当前登录用户是管理用户的基础。
   Future<WilddogUser> currentUser() async {
     // 声明定义数据词典，并接收currentUser方法调用的结果。
     final Map<String, dynamic> data = await channel.invokeMethod("currentUser");
@@ -296,6 +323,9 @@ class WilddogAuth {
   /// 抛出[PlatformException]时：
   /// 1. 电子邮件地址已被使用。
   /// 2. 提供错误的电子邮件和密码。
+  ///
+  /// 如果用户使用其他认证方式登录，可以将当前用户与给定的邮箱认证方式绑定，
+  /// 之后支持绑定的邮箱认证方式登录。（必须是未被使用的邮箱）
   Future<WilddogUser> linkWithEmailAndPassword({
     @required String email,
     @required String password,
@@ -317,7 +347,7 @@ class WilddogAuth {
     return currentUser;
   }
 
-  /// 异步更新用户属性，更新用户的姓名和头像属性。
+  /// 异步更新用户属性，更新用户的姓名和头像URL。
   Future<Null> updateProfile({
     @required String displayName,
     @required String photoURL,
