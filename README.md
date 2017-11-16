@@ -16,6 +16,8 @@
 
 在Flutter项目上配置Wilddog Sync的第一步是创建一个新的Wilddog项目，在浏览器中打开[Wilddog控制台](https://www.wilddog.com/dashboard)，选择“创建应用”，输入项目名称，然后单击“创建”。
 
+![这里写图片描述](http://img.blog.csdn.net/20171116225958005?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvaGVrYWl5b3U=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 Wilddog生成了一个App ID的字符串，这是Wilddog项目唯一ID，用于连接到刚创建的Wilddog服务。复制这个ID字符串值，下面在Android、iOS平台上配置Wilddog时需要用到这个值。
 
 注意，新项目需要*开启身份认证服务*才能正常使用，不然会报无权限异常。
@@ -26,7 +28,7 @@ Wilddog生成了一个App ID的字符串，这是Wilddog项目唯一ID，用于�
 
 ```
 dependencies:
-  wilddog_auth: "^0.0.1"
+  wilddog_auth: "^0.0.2"
 ```
 
 更新并保存此文件后，点击顶部的“Packages Get”，等待下载完成。打开`main.dart`文件，IntelliJ IDEA或其他编辑器可能会在上方显示一个提示，提醒我们重新加载`pubspec.yaml`文件，点击“Get dependencies”以检索其他软件包，并在Flutter项目中使用它们。
@@ -71,10 +73,18 @@ android {
 }
 ```
 
-最后还需要配置Android权限，在`AndroidMainfest.xml`文件中添加以下代码。
+如果出现tools:replace="android:label"的异常，在`AndroidManifest.xml`中添加下面的两行代码即可解决。
 
 ```
-<uses-permission android:name="android.permission.INTERNET"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    +[xmlns:tools="http://schemas.android.com/tools"]
+    package="com.hekaiyou.wilddogauthexample">
+    
+    <uses-permission android:name="android.permission.INTERNET"/>
+    
+    <application
+        +[tools:replace="android:label"]
+        android:name="io.flutter.app.FlutterApplication"
 ```
 
 完成配置后，建议先在IntelliJ IDEA中执行一次项目，编译Android应用程序，以确保Flutter项目下载所有依赖文件。

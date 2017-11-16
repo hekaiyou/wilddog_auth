@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/services.dart';
-import 'package:meta/meta.dart';
 
 /// 从身份认证提供方返回的用户数据，WilddogAuth目前支持以下提供方：
 /// 电子邮件地址与密码、QQ、微信、微信公众号、微博。
@@ -73,7 +71,6 @@ class WilddogUser extends UserInfo {
 class WilddogAuth {
   // MethodChannel类是一个使用异步方法调用与平台插件通信的命名通道，
   // 这里创建一个指定名称为'wilddog_auth'的MethodChannel。
-  @visibleForTesting
   static const MethodChannel channel = const MethodChannel('wilddog_auth');
 
   /*
@@ -190,8 +187,8 @@ class WilddogAuth {
   /// 
   /// 创建一个新用户，创建成功后会自动登录
   Future<WilddogUser> createUserWithEmailAndPassword({
-    @required String email,
-    @required String password,
+    String email,
+    String password,
   }) async {
     // 电子邮件和密码不能为空。
     assert(email != null);
@@ -212,8 +209,8 @@ class WilddogAuth {
 
   /// 使用电子邮箱和密码异步登录。
   Future<WilddogUser> signInWithEmailAndPassword({
-    @required String email,
-    @required String password,
+    String email,
+    String password,
   }) async {
     // 电子邮件和密码不能为空。
     assert(email != null);
@@ -288,8 +285,8 @@ class WilddogAuth {
   /// 用户长时间未登录的情况下进行下列安全敏感操作会失败：
   /// 删除帐户、设置主邮箱地址、更改密码。此时需要重新对用户进行身份认证。
   Future<Null> reauthenticateEmail({
-    @required String email,
-    @required String password,
+    String email,
+    String password,
   }) async {
     // 电子邮件和密码不能为空。
     assert(email != null);
@@ -327,8 +324,8 @@ class WilddogAuth {
   /// 如果用户使用其他认证方式登录，可以将当前用户与给定的邮箱认证方式绑定，
   /// 之后支持绑定的邮箱认证方式登录。（必须是未被使用的邮箱）
   Future<WilddogUser> linkWithEmailAndPassword({
-    @required String email,
-    @required String password,
+    String email,
+    String password,
   }) async {
     // 电子邮件和密码不能为空。
     assert(email != null);
@@ -349,8 +346,8 @@ class WilddogAuth {
 
   /// 异步更新用户属性，更新用户的姓名和头像URL。
   Future<Null> updateProfile({
-    @required String displayName,
-    @required String photoURL,
+    String displayName,
+    String photoURL,
   }) async {
     // 用户姓名和头像不能为空。
     assert(displayName != null);
