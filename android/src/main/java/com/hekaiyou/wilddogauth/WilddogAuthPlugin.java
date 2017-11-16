@@ -2,6 +2,7 @@ package com.hekaiyou.wilddogauth;
 
 import android.app.Activity;
 import android.util.SparseArray;
+import android.net.Uri;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.wilddog.wilddogauth.WilddogAuth;
@@ -13,6 +14,7 @@ import com.wilddog.wilddogauth.core.credentialandprovider.WilddogAuthProvider;
 import com.wilddog.wilddogauth.core.listener.OnCompleteListener;
 import com.wilddog.wilddogauth.core.result.AuthResult;
 import com.wilddog.wilddogauth.core.result.GetTokenResult;
+import com.wilddog.wilddogauth.core.request.UserProfileChangeRequest;
 
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -82,6 +84,16 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         // 调用处理匿名登录的方法
         handleSignInAnonymously(call, result);
         break;
+      // 更新用户属性
+      case "updateProfile":
+        // 调用处理更新用户属性的方法
+        handleUpdateProfile(call, result);
+        break;
+      // 更新用户邮箱或手机号认证密码
+      case "updatePassword":
+        // 调用处理更新用户邮箱或手机号认证密码的方法
+        handleUpdatePassword(call, result);
+        break;
       // 使用电子邮箱和密码创建用户
       case "createUserWithEmailAndPassword":
         // 调用处理使用电子邮箱和密码创建用户的方法
@@ -97,6 +109,11 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         // 调用处理登出的方法
         handleSignOut(call, result);
         break;
+      // 重新进行邮箱帐户认证
+      case "reauthenticateEmail":
+        // 调用处理重新进行邮箱帐户认证的方法
+        handleReauthenticateEmail(call, result);
+        break;
       // 获取用户ID标识符
       case "getIdToken":
         // 调用处理获取用户ID标识符的方法
@@ -106,6 +123,21 @@ public class WilddogAuthPlugin implements MethodCallHandler {
       case "linkWithEmailAndPassword":
         // 调用处理绑定电子邮箱和密码的方法
         handleLinkWithEmailAndPassword(call, result);
+        break;
+      // 发送电子邮箱验证邮件
+      case "sendEmailVerification":
+        // 调用处理发送电子邮箱验证邮件的方法
+        handleSendEmailVerification(call, result);
+        break;
+      // 发送重置密码邮件
+      case "sendPasswordResetEmail":
+        // 调用处理发送重置密码邮件的方法
+        handleSendPasswordResetEmail(call, result);
+        break;
+      // 更新帐号邮箱
+      case "updateEmail":
+        // 调用处理更新帐号邮箱的方法
+        handleUpdateEmail(call, result);
         break;
      // 开始监听认证状态
       case "startListeningAuthState":
@@ -189,6 +221,75 @@ public class WilddogAuthPlugin implements MethodCallHandler {
   }
 
   /**
+   * 处理更新用户属性
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleUpdateProfile(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义用户名变量，并获取调用参数中的用户名
+    String displayName = arguments.get("displayName");
+    // 声明定义用户头像变量，并获取调用参数中的用户头像
+    String photoURL = arguments.get("photoURL");
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // 用来更新用户信息的请求构建器
+    UserProfileChangeRequest profileUpdates = new  UserProfileChangeRequest.Builder()
+            .setDisplayName(displayName)
+            .setPhotoUri(Uri.parse(photoURL))
+            .build();
+    // updateProfile()方法用于更新用户属性
+    user.updateProfile(profileUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete(Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          // 返回错误信息给客户端
+          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+        }
+      }
+    });
+  }
+
+  /**
+   * 处理更新用户邮箱或手机号认证密码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleUpdatePassword(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义密码变量，并获取调用参数中的密码
+    String password = arguments.get("password");
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // updatePassword()方法用于更新用户邮箱或手机号认证密码
+    user.updatePassword(password).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete(Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          // 返回错误信息给客户端
+          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+        }
+      }
+    });
+  }
+
+  /**
    * 处理使用电子邮箱和密码创建用户
    * @param call 客户端传递的调用参数
    * @param result 返回客户端的结果
@@ -201,7 +302,6 @@ public class WilddogAuthPlugin implements MethodCallHandler {
     String email = arguments.get("email");
     // 声明定义密码变量，并获取调用参数中的密码
     String password = arguments.get("password");
-
     // 用给定的邮箱和密码创建一个用户账号，如果成功，这个用户也将登录成功
     // 然后可以通过getCurrentUser()访问用户信息和进行用户操作
     wilddogAuth.createUserWithEmailAndPassword(email, password)
@@ -221,10 +321,86 @@ public class WilddogAuthPlugin implements MethodCallHandler {
     String email = arguments.get("email");
     // 声明定义密码变量，并获取调用参数中的密码
     String password = arguments.get("password");
-
     // 通过邮箱和密码进行登录认证，可以通过getCurrentUser获取当前登录认证用户信息
     wilddogAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(activity, new SignInCompleteListener(result));
+  }
+
+  /**
+   * 处理发送电子邮箱验证邮件
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleSendEmailVerification(MethodCall call, final Result result) {
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // 发送邮箱验证，需要登录邮箱进行验证
+    user.sendEmailVerification();
+    // 返回结果给Flutter客户端
+    result.success(null);
+  }
+
+  /**
+   * 发送重置密码邮件
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleSendPasswordResetEmail(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    String email = arguments.get("email");
+    // sendPasswordResetEmail()方法用于向用户发送重设密码邮件
+    wilddogAuth.sendPasswordResetEmail(email).addOnCompleteListener(
+      // 完整的监听器
+      new OnCompleteListener<Void>(){
+        // 完成监听方法
+        @Override
+        public void onComplete(Task<Void> task) {
+          // 操作结果是否为成功的
+          if (task.isSuccessful()) {
+            // 返回结果给Flutter客户端
+            result.success(null);
+          }else{
+            // 返回错误信息给客户端
+            result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+          }
+        }
+      }
+    );
+  }
+
+  /**
+   * 处理更新帐号邮箱
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleUpdateEmail(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    String email = arguments.get("email");
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // updateEmail()方法用于更新用户邮箱地址
+    user.updateEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete(Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          // 返回错误信息给客户端
+          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+        }
+      }
+    });
   }
 
   /**
@@ -237,6 +413,42 @@ public class WilddogAuthPlugin implements MethodCallHandler {
     wilddogAuth.signOut();
     // 返回结果给Flutter客户端
     result.success(null);
+  }
+
+  /**
+   * 处理重新进行邮箱帐户认证
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleReauthenticateEmail(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    String email = arguments.get("email");
+    // 声明定义密码变量，并获取调用参数中的密码
+    String password = arguments.get("password");
+    // getEmailCredential方法返回一个带有邮箱和密码的用户凭证
+    // 当调用signInWithCredential(AuthCredential)或者linkWithCredential(AuthCredential)时候使用
+    AuthCredential credential = WilddogAuthProvider.getEmailCredential(email, password);
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // reauthenticate(credential)方法用于对用户重新进行身份认证
+    user.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete( Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          // 返回错误信息给客户端
+          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+        }
+      }
+    });
   }
 
   /**

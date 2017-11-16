@@ -119,6 +119,48 @@ int nextHandle = 0;
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:user error:error];
     }];
+  // 更新用户属性
+  } else if ([@"updateProfile" isEqualToString:call.method]) {
+    // 声明定义用户名变量，并获取调用参数中的用户名
+    NSString *displayName = call.arguments[@"displayName"];
+    // 声明定义用户头像变量，并获取调用参数中的用户头像
+    NSString *photoURL = call.arguments[@"photoURL"];
+    // profileChangeRequest创建一个可以改变用户信息的对象
+    WDGUserProfileChangeRequest *changeRequest = [[WDGAuth auth].currentUser profileChangeRequest];
+    // 更新用户名属性
+    changeRequest.displayName = displayName;
+    // 更新用户头像属性
+    changeRequest.photoURL = [NSURL URLWithString:photoURL];
+    // 修改完这个返回对象的属性，然后调用commitChangesWithCallback:来完成用户信息的修改
+    [changeRequest commitChangesWithCompletion:^(NSError *_Nullable error) {
+      // 更新操作是否失败
+      if (error) {
+        // 打印错误信息
+        NSLog(@"更新用户属性时出错: %@", error);
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:error];
+      } else {
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:nil];
+      }
+    }];
+  // 更新用户邮箱或手机号认证密码
+  } else if ([@"updatePassword" isEqualToString:call.method]) {
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // updatePassword:completion:方法用于更新用户邮箱或手机号认证密码
+    [[WDGAuth auth].currentUser updatePassword:password completion:^(NSError *_Nullable error) {
+      // 更新操作是否失败
+      if (error) {
+        // 打印错误信息
+        NSLog(@"更新认证密码时出错: %@", error);
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:error];
+      } else {
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:nil];
+      }
+    }];
   // 使用电子邮件和密码创建用户
   } else if ([@"createUserWithEmailAndPassword" isEqualToString:call.method]) {
     // 声明定义邮箱变量，并获取调用参数中的邮箱
@@ -145,6 +187,39 @@ int nextHandle = 0;
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:user error:error];
     }];
+  // 发送电子邮箱验证邮件
+  } else if ([@"sendEmailVerification" isEqualToString:call.method]) {
+    // 发送邮箱验证
+    [[WDGAuth auth].currentUser sendEmailVerificationWithCompletion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 发送重置密码邮件
+  } else if ([@"sendPasswordResetEmail" isEqualToString:call.method]) {
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    NSString *email = call.arguments[@"email"];
+    // sendPasswordResetWithEmail:completion:方法用于向用户发送重置密码邮件
+    [[WDGAuth auth] sendPasswordResetWithEmail:email completion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 更新帐号邮箱
+  } else if ([@"updateEmail" isEqualToString:call.method]) {
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    NSString *email = call.arguments[@"email"];
+    // 更新帐号邮箱。如果更新成功，本地缓存也会刷新
+    [[WDGAuth auth].currentUser updateEmail: email completion:^(NSError *_Nullable error) {
+      // 更新操作是否失败
+      if (error) {
+        // 打印错误信息
+        NSLog(@"更新帐号邮箱时出错: %@", error);
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:error];
+      } else {
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:nil];
+      }
+    }];
   // 登出
   } else if ([@"signOut" isEqualToString:call.method]) {
     // 声明注销错误变量
@@ -161,6 +236,29 @@ int nextHandle = 0;
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:nil error:nil];
     }
+  // 重新进行邮箱帐户认证
+  } else if ([@"reauthenticateEmail" isEqualToString:call.method]) {
+    // 声明定义邮箱变量，并获取调用参数中的邮箱
+    NSString *email = call.arguments[@"email"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // 使用credentialWithEmail:password:方法创建邮件和密码登录方式的WDGAuthCredential凭证
+    // 使用credentialWithPhone:password:方法创建手机号和密码登录方式的WDGAuthCredential凭证
+    // 返回WDGAuthCredential对象，里面包含email&password或phone&password登录方式凭证
+    WDGAuthCredential *credential = [WDGWilddogAuthProvider credentialWithEmail:email password:password];
+    // reauthenticateWithCredential:方法用于重新登录，刷新本地idToken
+    [[WDGAuth auth].currentUser reauthenticateWithCredential:credential completion:^(NSError *_Nullable error) {
+      // 更新操作是否失败
+      if (error) {
+        // 打印错误信息
+        NSLog(@"重新进行邮箱帐户认证时出错: %@", error);
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:error];
+      } else {
+        // 发送结果给Flutter客户端
+        [self sendResult:result forUser:nil error:nil];
+      }
+    }];
   // 获取用户ID标识符
   } else if ([@"getIdToken" isEqualToString:call.method]) {
     // 获取用户token
@@ -169,7 +267,7 @@ int nextHandle = 0;
       // error变量是否不为空，是则返回error变量，否则返回token变量
       result(error != nil ? error.flutterError : token);
     }];
-  // 绑定电子邮件和密码
+  // 绑定电子邮件和密码登录方式
   } else if ([@"linkWithEmailAndPassword" isEqualToString:call.method]) {
     // 声明定义邮箱变量，并获取调用参数中的邮箱
     NSString *email = call.arguments[@"email"];

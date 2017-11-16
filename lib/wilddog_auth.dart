@@ -167,6 +167,19 @@ class WilddogAuth {
     return currentUser;
   }
 
+  /// 更新用户邮箱或手机号认证密码。
+  Future<Null> updatePassword(String password) async {
+    // 认证密码不能为空。
+    assert(password != null);
+    // 接收updateEmail方法调用的结果。
+    return await channel.invokeMethod(
+      'updatePassword',
+      <String, String>{
+        'password': password,
+      },
+    );
+  }
+
   /// 使用电子邮件和密码异步创建用户。
   Future<WilddogUser> createUserWithEmailAndPassword({
     @required String email,
@@ -211,10 +224,60 @@ class WilddogAuth {
     return currentUser;
   }
 
+  /// 异步发送电子邮箱验证邮件。
+  Future<Null> sendEmailVerification() async {
+    // 接收sendEmailVerification方法调用的结果。
+    return await channel.invokeMethod("sendEmailVerification");
+  }
+
+  /// 异步发送重置密码邮件。
+  Future<Null> sendPasswordResetEmail(String email) async {
+    // 帐号邮箱不能为空。
+    assert(email != null);
+    // 接收sendPasswordResetEmail方法调用的结果。
+    return await channel.invokeMethod(
+      'sendPasswordResetEmail',
+      <String, String>{
+        'email': email,
+      },
+    );
+  }
+
+  /// 异步更新用户邮箱地址。
+  Future<Null> updateEmail(String email) async {
+    // 帐号邮箱不能为空。
+    assert(email != null);
+    // 接收updateEmail方法调用的结果。
+    return await channel.invokeMethod(
+      'updateEmail',
+      <String, String>{
+        'email': email,
+      },
+    );
+  }
+
   /// 异步注销登录。
   Future<Null> signOut() async {
     // 接收signOut方法调用的结果。
     return await channel.invokeMethod("signOut");
+  }
+
+  /// 异步重新进行邮箱帐户认证。
+  Future<Null> reauthenticateEmail({
+    @required String email,
+    @required String password,
+  }) async {
+    // 电子邮件和密码不能为空。
+    assert(email != null);
+    assert(password != null);
+    // 接收reauthenticateEmail方法调用的结果。
+    return await channel.invokeMethod(
+      'reauthenticateEmail',
+      <String, String>{
+        'email': email,
+        'password': password,
+      },
+    );
   }
 
   /// 异步获取当前用户，如果没有则返回null。
@@ -252,6 +315,24 @@ class WilddogAuth {
     final WilddogUser currentUser = new WilddogUser._(data);
     // 返回WilddogUser实例。
     return currentUser;
+  }
+
+  /// 异步更新用户属性，更新用户的姓名和头像属性。
+  Future<Null> updateProfile({
+    @required String displayName,
+    @required String photoURL,
+  }) async {
+    // 用户姓名和头像不能为空。
+    assert(displayName != null);
+    assert(photoURL != null);
+    // 接收updateProfile方法调用的结果。
+    return await channel.invokeMethod(
+      'updateProfile',
+      <String, String>{
+        'displayName': displayName,
+        'photoURL': photoURL,
+      },
+    );
   }
 
   // 接收方法调用的回调。
