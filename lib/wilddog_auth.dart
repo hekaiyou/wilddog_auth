@@ -159,10 +159,18 @@ class WilddogAuth {
   /// 实现匿名身份认证需要在“控制面板 身份认证—登录方式”中打开匿名登录方式。
   /// 匿名帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
   Future<WilddogUser> signInAnonymously() async {
-    // 声明定义数据词典，并接收signInAnonymously方法调用的结果。
-    final Map<String, dynamic> data = await channel.invokeMethod('signInAnonymously');
-    // 声明定义WilddogUser类的实例变量。
-    final WilddogUser currentUser = new WilddogUser._(data);
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用signInAnonymously方法。
+    await channel.invokeMethod('signInAnonymously').then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
     // 返回WilddogUser实例。
     return currentUser;
   }
@@ -171,7 +179,7 @@ class WilddogAuth {
   ///
   /// 更新当前登录认证用户的密码信息。
   /// 需要注意的是，要更新密码，该用户必须最近登录过（重新进行身份认证）。
-  Future<Null> updatePassword(String password) async {
+  Future<String> updatePassword(String password) async {
     // 认证密码不能为空。
     assert(password != null);
     // 接收updateEmail方法调用的结果。
@@ -193,16 +201,24 @@ class WilddogAuth {
     // 电子邮件和密码不能为空。
     assert(email != null);
     assert(password != null);
-    // 声明定义数据词典，并接收createUserWithEmailAndPassword方法调用的结果。
-    final Map<String, dynamic> data = await channel.invokeMethod(
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用createUserWithEmailAndPassword方法。
+    await channel.invokeMethod(
       'createUserWithEmailAndPassword',
       <String, String>{
         'email': email,
         'password': password,
       },
-    );
-    // 声明定义WilddogUser类的实例变量。
-    final WilddogUser currentUser = new WilddogUser._(data);
+    ).then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
     // 返回WilddogUser实例。
     return currentUser;
   }
@@ -215,16 +231,24 @@ class WilddogAuth {
     // 电子邮件和密码不能为空。
     assert(email != null);
     assert(password != null);
-    // 声明定义数据词典，并接收signInWithEmailAndPassword方法调用的结果。
-    final Map<String, dynamic> data = await channel.invokeMethod(
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用signInWithEmailAndPassword方法。
+    await channel.invokeMethod(
       'signInWithEmailAndPassword',
       <String, String>{
         'email': email,
         'password': password,
       },
-    );
-    // 声明定义WilddogUser类的实例变量。
-    final WilddogUser currentUser = new WilddogUser._(data);
+    ).then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
     // 返回WilddogUser实例。
     return currentUser;
   }
@@ -275,7 +299,7 @@ class WilddogAuth {
   /// 异步注销登录。
   ///
   /// 登出当前用户，清除登录数据。
-  Future<Null> signOut() async {
+  Future<String> signOut() async {
     // 接收signOut方法调用的结果。
     return await channel.invokeMethod("signOut");
   }
@@ -345,7 +369,7 @@ class WilddogAuth {
   }
 
   /// 异步更新用户属性，更新用户的姓名和头像URL。
-  Future<Null> updateProfile({
+  Future<String> updateProfile({
     String displayName,
     String photoURL,
   }) async {
@@ -360,6 +384,76 @@ class WilddogAuth {
         'photoURL': photoURL,
       },
     );
+  }
+
+  /// 使用手机号和密码异步创建用户。
+  ///
+  /// 创建一个新用户，创建成功后会自动登录
+  Future<WilddogUser> createUserWithPhoneAndPassword({
+    String phone,
+    String password,
+  }) async {
+    // 手机号和密码不能为空。
+    assert(phone != null);
+    assert(password != null);
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用createUserWithPhoneAndPassword方法。
+    await channel.invokeMethod(
+      'createUserWithPhoneAndPassword',
+      <String, String>{
+        'phone': phone,
+        'password': password,
+      },
+    ).then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
+    // 返回WilddogUser实例。
+    return currentUser;
+  }
+
+  /// 使用手机号和密码异步登录。
+  Future<WilddogUser> signInWithPhoneAndPassword({
+    String phone,
+    String password,
+  }) async {
+    // 手机号和密码不能为空。
+    assert(phone != null);
+    assert(password != null);
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用signInWithPhoneAndPassword方法。
+    await channel.invokeMethod(
+      'signInWithPhoneAndPassword',
+      <String, String>{
+        'phone': phone,
+        'password': password,
+      },
+    ).then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
+    // 返回WilddogUser实例。
+    return currentUser;
+  }
+
+  /// 异步发送验证用户的手机验证码。
+  ///
+  /// 在控制面板“身份认证—登录方式—手机登录—配置”中定制验证号码短信模版。
+  Future<String> sendPhoneVerification() async {
+    // 接收sendPhoneVerification方法调用的结果。
+    return await channel.invokeMethod("sendPhoneVerification");
   }
 
   // 接收方法调用的回调。

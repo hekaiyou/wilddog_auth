@@ -133,16 +133,8 @@ int nextHandle = 0;
     changeRequest.photoURL = [NSURL URLWithString:photoURL];
     // 修改完这个返回对象的属性，然后调用commitChangesWithCallback:来完成用户信息的修改
     [changeRequest commitChangesWithCompletion:^(NSError *_Nullable error) {
-      // 更新操作是否失败
-      if (error) {
-        // 打印错误信息
-        NSLog(@"更新用户属性时出错: %@", error);
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:error];
-      } else {
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:nil];
-      }
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
     }];
   // 更新用户邮箱或手机号认证密码
   } else if ([@"updatePassword" isEqualToString:call.method]) {
@@ -150,16 +142,8 @@ int nextHandle = 0;
     NSString *password = call.arguments[@"password"];
     // updatePassword:completion:方法用于更新用户邮箱或手机号认证密码
     [[WDGAuth auth].currentUser updatePassword:password completion:^(NSError *_Nullable error) {
-      // 更新操作是否失败
-      if (error) {
-        // 打印错误信息
-        NSLog(@"更新认证密码时出错: %@", error);
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:error];
-      } else {
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:nil];
-      }
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
     }];
   // 使用电子邮件和密码创建用户
   } else if ([@"createUserWithEmailAndPassword" isEqualToString:call.method]) {
@@ -225,17 +209,9 @@ int nextHandle = 0;
     // 声明注销错误变量
     NSError *signOutError;
     // signOut方法用于退出当前登录用户
-    BOOL status = [[WDGAuth auth] signOut:&signOutError];
-    // 登出操作是否失败
-    if (!status) {
-      // 打印错误信息
-      NSLog(@"登出时出错: %@", signOutError);
-      // 发送结果给Flutter客户端
-      [self sendResult:result forUser:nil error:signOutError];
-    } else {
-      // 发送结果给Flutter客户端
-      [self sendResult:result forUser:nil error:nil];
-    }
+    [[WDGAuth auth] signOut:&signOutError];
+    // 发送结果给Flutter客户端
+    [self sendResult:result forUser:nil error:signOutError];
   // 重新进行邮箱帐户认证
   } else if ([@"reauthenticateEmail" isEqualToString:call.method]) {
     // 声明定义邮箱变量，并获取调用参数中的邮箱
@@ -258,6 +234,38 @@ int nextHandle = 0;
         // 发送结果给Flutter客户端
         [self sendResult:result forUser:nil error:nil];
       }
+    }];
+  // 使用手机号和密码创建用户
+  } else if ([@"createUserWithPhoneAndPassword" isEqualToString:call.method]) {
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    NSString *phone = call.arguments[@"phone"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // 使用createUserWithPhone:password:completion:方法创建新用户
+    // 用手机号的方式创建一个新用户，创建成功后会自动登录
+    [[WDGAuth auth] createUserWithPhone:phone password:password
+                            completion:^(WDGUser *_Nullable user, NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:user error:error];
+    }];
+  // 用手机号和密码登录
+  } else if ([@"signInWithPhoneAndPassword" isEqualToString:call.method]) {
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    NSString *phone = call.arguments[@"phone"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // 将手机号和密码传递到signInWithPhone:password:completion:即可登录此用户
+    [[WDGAuth auth] signInWithPhone:phone password:password
+                        completion:^(WDGUser *_Nullable user, NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:user error:error];
+    }];
+  // 发送验证用户的手机验证码
+  } else if ([@"sendPhoneVerification" isEqualToString:call.method]) {
+    // 发送验证手机的验证码
+    [[WDGAuth auth].currentUser sendPhoneVerificationWithCompletion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
     }];
   // 获取用户ID标识符
   } else if ([@"getIdToken" isEqualToString:call.method]) {
@@ -371,8 +379,10 @@ int nextHandle = 0;
 - (void)sendResult:(FlutterResult)result forUser:(WDGUser *)user error:(NSError *)error {
   // error变量是否不为空
   if (error != nil) {
+    // 打印错误信息
+    NSLog(@"%@",error);
     // 返回错误信息
-    result(error.flutterError);
+    result([NSString stringWithFormat: @"%@",error]);
   // user变量是否为空
   } else if (user == nil) {
     // 返回空值

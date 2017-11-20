@@ -22,6 +22,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.util.Map;
+import android.util.Log;
 
 /** Flutter的野狗云身份认证插件 */
 public class WilddogAuthPlugin implements MethodCallHandler {
@@ -38,7 +39,7 @@ public class WilddogAuthPlugin implements MethodCallHandler {
   private int nextHandle = 0;
 
   // 声明私有、静态、不可变的错误的意外原因
-  private static final String ERROR_REASON_EXCEPTION = "exception";
+  private static final String ERROR_REASON_EXCEPTION = "wilddog_auth";
 
   /**
    * 插件注册，即注册Android方法通道
@@ -139,7 +140,22 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         // 调用处理更新帐号邮箱的方法
         handleUpdateEmail(call, result);
         break;
-     // 开始监听认证状态
+      // 使用手机号和密码创建用户
+      case "createUserWithPhoneAndPassword":
+        // 调用处理使用手机号和密码创建用户的方法
+        handleCreateUserWithPhoneAndPassword(call, result);
+        break;
+      // 使用手机号和密码登录
+      case "signInWithPhoneAndPassword":
+        // 调用处理使用手机号和密码登录的方法
+        handleSignInWithPhoneAndPassword(call, result);
+        break;
+      // 发送验证用户的手机验证码
+      case "sendPhoneVerification":
+        // 调用处理发送验证用户的手机验证码的方法
+        handleSendPhoneVerification(call, result);
+        break;
+      // 开始监听认证状态
       case "startListeningAuthState":
         // 调用处理开始监听认证状态的方法
         handleStartListeningAuthState(call, result);
@@ -251,8 +267,9 @@ public class WilddogAuthPlugin implements MethodCallHandler {
           // 返回结果给Flutter客户端
           result.success(null);
         }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
           // 返回错误信息给客户端
-          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+          result.success(task.getException().toString());
         }
       }
     });
@@ -282,8 +299,9 @@ public class WilddogAuthPlugin implements MethodCallHandler {
           // 返回结果给Flutter客户端
           result.success(null);
         }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
           // 返回错误信息给客户端
-          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+          result.success(task.getException().toString());
         }
       }
     });
@@ -452,6 +470,72 @@ public class WilddogAuthPlugin implements MethodCallHandler {
   }
 
   /**
+   * 处理使用手机号和密码创建用户
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleCreateUserWithPhoneAndPassword(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    String phone = arguments.get("phone");
+    // 声明定义密码变量，并获取调用参数中的密码
+    String password = arguments.get("password");
+    // 用给定的手机号和密码创建一个用户账号，如果成功，这个用户也将登录成功
+    wilddogAuth.createUserWithPhoneAndPassword(phone, password)
+            .addOnCompleteListener(activity, new SignInCompleteListener(result));
+  }
+
+  /**
+   * 处理使用手机号和密码登录
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleSignInWithPhoneAndPassword(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    String phone = arguments.get("phone");
+    // 声明定义密码变量，并获取调用参数中的密码
+    String password = arguments.get("password");
+    // 将手机号码和密码传递到signInWithPhoneAndPassword即可登录此用户
+    wilddogAuth.signInWithPhoneAndPassword(phone, password)
+            .addOnCompleteListener(activity, new SignInCompleteListener(result));
+  }
+
+  /**
+   * 处理发送验证用户的手机验证码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleSendPhoneVerification(MethodCall call, final Result result) {
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // 发送邮箱验证，需要登录邮箱进行验证
+    user.sendPhoneVerification().addOnCompleteListener(
+      // 完整的监听器
+      new OnCompleteListener<Void>(){
+        // 完成监听方法
+        @Override
+        public void onComplete(Task<Void> task) {
+          // 操作结果是否为成功的
+          if (task.isSuccessful()) {
+            // 返回结果给Flutter客户端
+            result.success(null);
+          }else{
+            Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+            // 返回错误信息给客户端
+            result.success(task.getException().toString());
+          }
+        }
+      }
+    );
+  }
+
+  /**
    * 处理获取用户ID标识符
    * @param call 客户端传递的调用参数
    * @param result 返回客户端的结果
@@ -583,7 +667,8 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         // 得到意外信息
         Exception e = task.getException();
         // 返回错误信息给客户端
-        result.error(ERROR_REASON_EXCEPTION, e.getMessage(), null);
+        Log.e(ERROR_REASON_EXCEPTION,e.toString());
+        result.success(e.toString());
       } else {
         // 得到Wilddog用户实例
         WilddogUser user = task.getResult().getWilddogUser();

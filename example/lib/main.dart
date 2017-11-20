@@ -20,29 +20,44 @@ class _MyAppState extends State<MyApp> {
   // 测试获取当前用户。
   Future<String> _testCurrentUser() async {
     final WilddogUser user = await _auth.currentUser();
-    return '获取当前用户成功：$user';
+    if(user == null){
+      return '当前没有用户登录';
+    }else{
+      return '获取当前用户成功：$user';
+    }
   }
 
   // 测试匿名登录。
   Future<String> _testSignInAnonymously() async {
     final WilddogUser user = await _auth.signInAnonymously();
-    assert(user != null);
-    return '登录匿名成功：$user';
+    if(user != null){
+      return '匿名登录成功：$user';
+    }else{
+      return '匿名登录失败';
+    }
   }
 
   // 测试更新用户属性
-  Future<Null> _testUpdateProfile() async {
-    await _auth.updateProfile(
+  Future<String> _testUpdateProfile() async {
+    String result = await _auth.updateProfile(
       displayName: 'hekaiyou',
       photoURL: 'https://example.com/hekaiyou/profile.jpg'
     );
+    if(result == null){
+      return '更新用户属性成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试更新用户邮箱或手机号认证密码。
-  Future<Null> _testUpdatePassword() async {
-    final WilddogUser currentUser = await _auth.currentUser();
-    assert(!currentUser.isAnonymous);
-    await _auth.updatePassword('654321');
+  Future<String> _testUpdatePassword() async {
+    String result = await _auth.updatePassword('654321');
+    if(result == null){
+      return '更新邮箱或手机密码成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试使用电子邮箱和密码登录。
@@ -51,8 +66,11 @@ class _MyAppState extends State<MyApp> {
       email: 'hky2014@yeah.net',
       password: '123456',
     );
-    assert(user != null);
-    return '使用电子邮箱和密码登录成功：$user';
+    if(user != null){
+      return '使用电子邮箱和密码登录成功：$user';
+    }else{
+      return '使用电子邮箱和密码登录失败';
+    }
   }
 
   // 测试使用电子邮箱和密码创建用户。
@@ -61,8 +79,11 @@ class _MyAppState extends State<MyApp> {
       email: 'hky2014@yeah.net',
       password: '123456',
     );
-    assert(user != null);
-    return '使用电子邮箱和密码创建用户成功：$user';
+    if(user != null){
+      return '使用电子邮箱和密码创建用户成功：$user';
+    }else{
+      return '使用电子邮箱和密码创建用户失败';
+    }
   }
 
   // 测试将电子邮箱帐户与当前用户关联。
@@ -87,7 +108,7 @@ class _MyAppState extends State<MyApp> {
 
   // 测试更新用户邮箱地址。
   Future<Null> _testUpdateEmail() async {
-    await _auth.updateEmail('952114868@qq.com');
+    await _auth.updateEmail('new_hky2014@qq.com');
   }
 
   // 测试重新进行邮箱帐户认证。
@@ -98,9 +119,46 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
+  // 测试使用手机号和密码创建用户。
+  Future<String> _testCreateUserWithPhoneAndPassword() async {
+    final WilddogUser user = await _auth.createUserWithPhoneAndPassword(
+      phone: '13823128549',
+      password: '123456',
+    );
+    if(user != null){
+      return '使用手机号和密码创建用户成功：$user';
+    }else{
+      return '使用手机号和密码创建用户失败';
+    }
+  }
+
+  // 测试使用手机号和密码登录。
+  Future<String> _testSignInWithPhoneAndPassword() async {
+    final WilddogUser user = await _auth.signInWithPhoneAndPassword(
+      phone: '13823128549',
+      password: '123456',
+    );
+    if(user != null){
+      return '使用手机号和密码登录成功：$user';
+    }else{
+      return '使用手机号和密码登录失败';
+    }
+  }
+
+  // 测试发送验证用户的手机验证码。
+  Future<String> _testSendPhoneVerification() async {
+    String result = await _auth.sendPhoneVerification();
+    if(result == null){
+      return '发送验证用户的手机验证码成功';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
   // 测试退出登录。
-  Future<Null> _testSignOut() async {
+  Future<String> _testSignOut() async {
     await _auth.signOut();
+    return '退出登录成功';
   }
 
   @override
@@ -118,30 +176,6 @@ class _MyAppState extends State<MyApp> {
               onPressed: (){
                 setState((){
                   _message = _testCurrentUser();
-                });
-              },
-            ),
-            new MaterialButton(
-              child: const Text('匿名登录'),
-              onPressed: (){
-                setState((){
-                  _message = _testSignInAnonymously();
-                });
-              },
-            ),
-            new MaterialButton(
-              child: const Text('更新用户属性'),
-              onPressed: (){
-                setState((){
-                  _message = _testUpdateProfile();
-                });
-              },
-            ),
-            new MaterialButton(
-              child: const Text('更新用户邮箱或手机号认证密码'),
-              onPressed: (){
-                setState((){
-                  _message = _testUpdatePassword();
                 });
               },
             ),
@@ -201,6 +235,30 @@ class _MyAppState extends State<MyApp> {
                 });
               },
             ),
+//            new MaterialButton(
+//              child: const Text('使用手机号和密码创建用户'),
+//              onPressed: (){
+//                setState((){
+//                  _message = _testCreateUserWithPhoneAndPassword();
+//                });
+//              },
+//            ),
+//            new MaterialButton(
+//              child: const Text('使用手机号和密码登录'),
+//              onPressed: (){
+//                setState((){
+//                  _message = _testSignInWithPhoneAndPassword();
+//                });
+//              },
+//            ),
+//            new MaterialButton(
+//              child: const Text('发送验证用户的手机验证码'),
+//              onPressed: (){
+//                setState((){
+//                  _message = _testSendPhoneVerification();
+//                });
+//              },
+//            ),
             new MaterialButton(
               child: const Text('退出登录'),
               onPressed: (){

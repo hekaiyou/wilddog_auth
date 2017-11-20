@@ -125,17 +125,9 @@ final WilddogAuth _auth = WilddogAuth.instance;
 
 用户生命周期包含以下三种状态：用户注册或登录成功、当前的Wilddog ID Token已刷新（重新进行身份认证）、退出登录。
 
-#### 匿名身份认证
-
-实现匿名身份认证需要在“控制面板 身份认证—登录方式”中打开匿名登录方式。匿名登录的帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
-
-```
-final WilddogUser user = await _auth.signInAnonymously();
-```
-
 #### 获取当前登录用户
 
-Wilddog Auth中用户有一组基本属性：Wilddog ID、主邮箱地址、名称、照片地址，获取当前登录用户是管理用户的基础。
+Wilddog Auth中用户有一组基本属性：WilddogID、邮箱地址、名称、照片地址，获取当前登录用户是管理用户的基础。
 
 ```
 final WilddogUser user = await _auth.currentUser();
@@ -166,7 +158,7 @@ await _auth.updateProfile(
 
 #### 更新用户认证密码
 
-更新当前登录认证用户的密码信息。需要注意的是，要更新密码，该用户必须最近登录过（重新进行身份认证）。
+如果当前用户使用邮箱或手机号认证登录，可以更新用户的密码信息。需要注意的是，要更新密码，该用户必须最近登录过（重新进行身份认证）。
 
 ```
 await _auth.updatePassword('654321');
@@ -180,13 +172,21 @@ await _auth.updatePassword('654321');
 await _auth.signOut();
 ```
 
+### 匿名登录
+
+实现匿名身份认证需要在“控制面板 身份认证—登录方式”中打开匿名登录方式。匿名登录的帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
+
+```
+final WilddogUser user = await _auth.signInAnonymously();
+```
+
 ### 邮箱登录
 
 实现邮箱登录需要在控制面板“身份认证—登录方式”中打开邮箱登录方式。
 
 #### 创建用户
 
-用邮箱地址和密码创建一个新用户，创建一个新用户，创建成功后会自动登录。
+用邮箱地址和密码创建一个新用户，新用户创建成功后会自动登录。
 
 ```
 final WilddogUser user = await _auth.createUserWithEmailAndPassword(
@@ -256,7 +256,37 @@ final WilddogUser user = await _auth.linkWithEmailAndPassword(
 
 ### 手机登录
 
-开发中
+现邮箱登录需要在控制面板“身份认证—登录方式”中打开手机号登录方式。
+
+#### 创建用户
+
+用手机号和密码创建一个新用户，新用户创建成功后会自动登录。
+
+```
+final WilddogUser user = await _auth.createUserWithPhoneAndPassword(
+  phone: '13823128549',
+  password: '123456',
+);
+```
+
+#### 登录用户
+
+使用手机号和密码登录。
+
+```
+final WilddogUser user = await _auth.signInWithPhoneAndPassword(
+  phone: '13823128549',
+  password: '123456',
+);
+```
+
+#### 发送验证号码短信
+
+发送验证手机的验证码，在控制面板“身份认证—登录方式—手机登录—配置”中定制验证号码短信模版。
+
+```
+await _auth.sendPhoneVerification();
+```
 
 ## 加入我们
 
