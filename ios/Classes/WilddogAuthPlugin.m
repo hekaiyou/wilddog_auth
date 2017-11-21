@@ -41,6 +41,8 @@ NSDictionary *toDictionary(id<WDGUserInfo> userInfo) {
     @"photoUrl" : [NSString stringWithFormat:@"%@",userInfo.photoURL],
     // email用于获取用户邮箱地址
     @"email" : userInfo.email ?: [NSNull null],
+    // phone用于获取用户手机号码
+    @"phone" : userInfo.phone ?: [NSNull null],
   };
 }
 
@@ -193,16 +195,8 @@ int nextHandle = 0;
     NSString *email = call.arguments[@"email"];
     // 更新帐号邮箱。如果更新成功，本地缓存也会刷新
     [[WDGAuth auth].currentUser updateEmail: email completion:^(NSError *_Nullable error) {
-      // 更新操作是否失败
-      if (error) {
-        // 打印错误信息
-        NSLog(@"更新帐号邮箱时出错: %@", error);
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:error];
-      } else {
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:nil];
-      }
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
     }];
   // 登出
   } else if ([@"signOut" isEqualToString:call.method]) {
@@ -212,6 +206,13 @@ int nextHandle = 0;
     [[WDGAuth auth] signOut:&signOutError];
     // 发送结果给Flutter客户端
     [self sendResult:result forUser:nil error:signOutError];
+  // 删除用户
+  } else if ([@"delete" isEqualToString:call.method]) {
+    // 删除这个帐号（如果是当前用户，则退出登录）
+    [[WDGAuth auth].currentUser deleteWithCompletion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
   // 重新进行邮箱帐户认证
   } else if ([@"reauthenticateEmail" isEqualToString:call.method]) {
     // 声明定义邮箱变量，并获取调用参数中的邮箱
@@ -224,16 +225,8 @@ int nextHandle = 0;
     WDGAuthCredential *credential = [WDGWilddogAuthProvider credentialWithEmail:email password:password];
     // reauthenticateWithCredential:方法用于重新登录，刷新本地idToken
     [[WDGAuth auth].currentUser reauthenticateWithCredential:credential completion:^(NSError *_Nullable error) {
-      // 更新操作是否失败
-      if (error) {
-        // 打印错误信息
-        NSLog(@"重新进行邮箱帐户认证时出错: %@", error);
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:error];
-      } else {
-        // 发送结果给Flutter客户端
-        [self sendResult:result forUser:nil error:nil];
-      }
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
     }];
   // 使用手机号和密码创建用户
   } else if ([@"createUserWithPhoneAndPassword" isEqualToString:call.method]) {
@@ -264,6 +257,62 @@ int nextHandle = 0;
   } else if ([@"sendPhoneVerification" isEqualToString:call.method]) {
     // 发送验证手机的验证码
     [[WDGAuth auth].currentUser sendPhoneVerificationWithCompletion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 确认验证用户的手机验证码
+  } else if ([@"verifyPhoneSmsCode" isEqualToString:call.method]) {
+    // 声明定义验证码变量，并获取调用参数中的验证码
+    NSString *realSms = call.arguments[@"realSms"];
+    // 发送验证用户的手机验证码后，收到的验证码需要用此方法验证。
+    [[WDGAuth auth].currentUser verifyPhoneWithSmsCode:realSms completion:^(NSError * _Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 发送重置密码的手机验证码
+  } else if ([@"sendPasswordResetSms" isEqualToString:call.method]) {
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    NSString *phone = call.arguments[@"phone"];
+    // 发送重置密码的手机验证码
+    [[WDGAuth auth] sendPasswordResetSmsWithPhone:phone completion:^(NSError * _Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 确认重置密码的手机验证码
+  } else if ([@"confirmPasswordResetSms" isEqualToString:call.method]) {
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    NSString *phone = call.arguments[@"phone"];
+    // 声明定义验证码变量，并获取调用参数中的验证码
+    NSString *realSms = call.arguments[@"realSms"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *newPassword = call.arguments[@"newPassword"];
+    // 发送重置密码的手机验证码后，收到的验证码需要用此方法验证。
+    [[WDGAuth auth] confirmPasswordResetSmsWithPhone:phone smsCode:realSms newPassword:newPassword
+                                            completion:^(NSError * _Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 更新帐号手机号码
+  } else if ([@"updatePhone" isEqualToString:call.method]) {
+    // 声明定义手机号码变量，并获取调用参数中的手机号码
+    NSString *phone = call.arguments[@"phone"];
+    // 更新帐号手机号码。如果更新成功，本地缓存也会刷新
+    [[WDGAuth auth].currentUser updatePhone: phone completion:^(NSError *_Nullable error) {
+      // 发送结果给Flutter客户端
+      [self sendResult:result forUser:nil error:error];
+    }];
+  // 重新进行手机帐户认证
+  } else if ([@"reauthenticatePhone" isEqualToString:call.method]) {
+    // 声明定义手机号码变量，并获取调用参数中的手机号码
+    NSString *phone = call.arguments[@"phone"];
+    // 声明定义密码变量，并获取调用参数中的密码
+    NSString *password = call.arguments[@"password"];
+    // 使用credentialWithEmail:password:方法创建邮件和密码登录方式的WDGAuthCredential凭证
+    // 使用credentialWithPhone:password:方法创建手机号和密码登录方式的WDGAuthCredential凭证
+    // 返回WDGAuthCredential对象，里面包含email&password或phone&password登录方式凭证
+    WDGAuthCredential *credential = [WDGWilddogAuthProvider credentialWithPhone:phone password:password];
+    // reauthenticateWithCredential:方法用于重新登录，刷新本地idToken
+    [[WDGAuth auth].currentUser reauthenticateWithCredential:credential completion:^(NSError *_Nullable error) {
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:nil error:error];
     }];
@@ -369,6 +418,8 @@ int nextHandle = 0;
     userData[@"isAnonymous"] = [NSNumber numberWithBool:user.isAnonymous];
     // 当前用户是否已验证电子邮件
     userData[@"isEmailVerified"] = [NSNumber numberWithBool:user.isEmailVerified];
+    // 当前用户是否已验证手机号码
+    userData[@"isPhoneVerified"] = [NSNumber numberWithBool:user.isPhoneVerified];
     // 当前用户的提供方数据
     userData[@"providerData"] = providerData;
     // 返回用户数据变量

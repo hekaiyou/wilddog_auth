@@ -92,31 +92,54 @@ class _MyAppState extends State<MyApp> {
       email: 'hky2014@yeah.net',
       password: '123456',
     );
-    assert(user != null);
-    return '将电子邮箱帐户与当前用户关联成功：$user';
+    if(user != null){
+      return '将电子邮箱帐户与当前用户关联成功：$user';
+    }else{
+      return '将电子邮箱帐户与当前用户关联失败';
+    }
   }
 
   // 测试发送电子邮箱验证邮件。
-  Future<Null> _testSendEmailVerification() async {
-    await _auth.sendEmailVerification();
+  Future<String> _testSendEmailVerification() async {
+    String result = await _auth.sendEmailVerification();
+    if(result == null){
+      return '发送电子邮箱验证邮件成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试发送重置密码邮件。
-  Future<Null> _testSendPasswordResetEmail() async {
-    await _auth.sendPasswordResetEmail('hky2014@yeah.net');
+  Future<String> _testSendPasswordResetEmail() async {
+    String result = await _auth.sendPasswordResetEmail('hky2014@yeah.net');
+    if(result == null){
+      return '发送重置密码邮件成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试更新用户邮箱地址。
-  Future<Null> _testUpdateEmail() async {
-    await _auth.updateEmail('new_hky2014@qq.com');
+  Future<String> _testUpdateEmail() async {
+    String result = await _auth.updateEmail('new_hky2014@qq.com');
+    if(result == null){
+      return '更新用户邮箱地址成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试重新进行邮箱帐户认证。
-  Future<Null> _testReauthenticateEmail() async {
-    await _auth.reauthenticateEmail(
+  Future<String> _testReauthenticateEmail() async {
+    String result = await _auth.reauthenticateEmail(
       email: 'hky2014@yeah.net',
       password: '123456',
     );
+    if(result == null){
+      return '重新进行邮箱帐户认证成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   // 测试使用手机号和密码创建用户。
@@ -155,10 +178,81 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  // 测试确认验证用户的手机验证码。
+  Future<String> _testVerifyPhoneSmsCode() async {
+    String result = await _auth.verifyPhoneSmsCode('208345');
+    if(result == null){
+      return '确认验证用户的手机验证码正确';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
+  // 测试发送重置密码的手机验证码。
+  Future<String> _testSendPasswordResetSms() async {
+    String result = await _auth.sendPasswordResetSms('13823128549');
+    if(result == null){
+      return '发送重置密码的手机验证码成功';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
+  // 测试确认重置密码的手机验证码。
+  Future<String> _testConfirmPasswordResetSms() async {
+    String result = await _auth.confirmPasswordResetSms(
+      phone: '13823128549',
+      realSms: '849371',
+      newPassword: '123456',
+    );
+    if(result == null){
+      return '确认重置密码的手机验证码正确';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
+  // 测试更新用户手机号码。
+  Future<String> _testUpdatePhone() async {
+    String result = await _auth.updatePhone('13800000000');
+    if(result == null){
+      return '更新用户手机号码成功';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
+  // 测试重新进行手机帐户认证。
+  Future<String> _testReauthenticatePhone() async {
+    String result = await _auth.reauthenticatePhone(
+      phone: '13823128549',
+      password: '123456',
+    );
+    if(result == null){
+      return '重新进行手机帐户认证成功';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
   // 测试退出登录。
   Future<String> _testSignOut() async {
-    await _auth.signOut();
-    return '退出登录成功';
+    String result = await _auth.signOut();
+    if(result == null){
+      return '退出登录成功';
+    }else{
+      return '异常信息：$result';
+    }
+  }
+
+  // 测试删除用户。
+  Future<String> _testDelete() async {
+    String result = await _auth.delete();
+    if(result == null){
+      return '删除用户成功';
+    }else{
+      return '异常信息：$result';
+    }
   }
 
   @override
@@ -180,85 +274,37 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             new MaterialButton(
-              child: const Text('使用电子邮箱和密码创建用户'),
+              child: const Text('匿名登录'),
               onPressed: (){
                 setState((){
-                  _message = _testCreateUserWithEmailAndPassword();
+                  _message = _testSignInAnonymously();
                 });
               },
             ),
             new MaterialButton(
-              child: const Text('将电子邮箱帐户与当前用户关联'),
+              child: const Text('使用手机号和密码创建用户'),
               onPressed: (){
                 setState((){
-                  _message = _testLinkWithEmailAndPassword();
+                  _message = _testCreateUserWithPhoneAndPassword();
                 });
               },
             ),
             new MaterialButton(
-              child: const Text('使用电子邮箱和密码登录'),
+              child: const Text('使用手机号和密码登录'),
               onPressed: (){
                 setState((){
-                  _message = _testSignInWithEmailAndPassword();
+                  _message = _testSignInWithPhoneAndPassword();
                 });
               },
             ),
             new MaterialButton(
-              child: const Text('发送电子邮箱验证邮件'),
+              child: const Text('重新进行手机帐户认证'),
               onPressed: (){
                 setState((){
-                  _message = _testSendEmailVerification();
+                  _message = _testReauthenticatePhone();
                 });
               },
             ),
-            new MaterialButton(
-              child: const Text('更新用户邮箱地址'),
-              onPressed: (){
-                setState((){
-                  _message = _testUpdateEmail();
-                });
-              },
-            ),
-            new MaterialButton(
-              child: const Text('发送重置密码邮件'),
-              onPressed: (){
-                setState((){
-                  _message = _testSendPasswordResetEmail();
-                });
-              },
-            ),
-            new MaterialButton(
-              child: const Text('重新进行邮箱帐户认证'),
-              onPressed: (){
-                setState((){
-                  _message = _testReauthenticateEmail();
-                });
-              },
-            ),
-//            new MaterialButton(
-//              child: const Text('使用手机号和密码创建用户'),
-//              onPressed: (){
-//                setState((){
-//                  _message = _testCreateUserWithPhoneAndPassword();
-//                });
-//              },
-//            ),
-//            new MaterialButton(
-//              child: const Text('使用手机号和密码登录'),
-//              onPressed: (){
-//                setState((){
-//                  _message = _testSignInWithPhoneAndPassword();
-//                });
-//              },
-//            ),
-//            new MaterialButton(
-//              child: const Text('发送验证用户的手机验证码'),
-//              onPressed: (){
-//                setState((){
-//                  _message = _testSendPhoneVerification();
-//                });
-//              },
-//            ),
             new MaterialButton(
               child: const Text('退出登录'),
               onPressed: (){

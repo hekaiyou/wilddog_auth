@@ -110,6 +110,11 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         // 调用处理登出的方法
         handleSignOut(call, result);
         break;
+      // 删除用户
+      case "delete":
+        // 调用处理删除用户的方法
+        handleDelete(call, result);
+        break;
       // 重新进行邮箱帐户认证
       case "reauthenticateEmail":
         // 调用处理重新进行邮箱帐户认证的方法
@@ -154,6 +159,31 @@ public class WilddogAuthPlugin implements MethodCallHandler {
       case "sendPhoneVerification":
         // 调用处理发送验证用户的手机验证码的方法
         handleSendPhoneVerification(call, result);
+        break;
+      // 确认验证用户的手机验证码
+      case "verifyPhoneSmsCode":
+        // 调用处理确认验证用户的手机验证码的方法
+        handleVerifyPhoneSmsCode(call, result);
+        break;
+      // 发送重置密码的手机验证码
+      case "sendPasswordResetSms":
+        // 调用处理发送验证用户的手机验证码的方法
+        handleSendPasswordResetSms(call, result);
+        break;
+      // 确认重置密码的手机验证码
+      case "confirmPasswordResetSms":
+        // 调用处理确认重置密码的手机验证码的方法
+        handleConfirmPasswordResetSms(call, result);
+        break;
+      // 更新帐号手机号码
+      case "updatePhone":
+        // 调用处理更新帐号手机号码的方法
+        handleUpdatePhone(call, result);
+        break;
+      // 重新进行手机帐户认证
+      case "reauthenticatePhone":
+        // 调用处理重新进行手机帐户认证的方法
+        handleReauthenticatePhone(call, result);
         break;
       // 开始监听认证状态
       case "startListeningAuthState":
@@ -354,9 +384,21 @@ public class WilddogAuthPlugin implements MethodCallHandler {
     // 如果没有登录，则返回为空值
     WilddogUser user = wilddogAuth.getCurrentUser();
     // 发送邮箱验证，需要登录邮箱进行验证
-    user.sendEmailVerification();
-    // 返回结果给Flutter客户端
-    result.success(null);
+    user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete(Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+          // 返回错误信息给客户端
+          result.success(task.getException().toString());
+        }
+      }
+    });
   }
 
   /**
@@ -382,8 +424,9 @@ public class WilddogAuthPlugin implements MethodCallHandler {
             // 返回结果给Flutter客户端
             result.success(null);
           }else{
+            Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
             // 返回错误信息给客户端
-            result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+            result.success(task.getException().toString());
           }
         }
       }
@@ -414,8 +457,9 @@ public class WilddogAuthPlugin implements MethodCallHandler {
           // 返回结果给Flutter客户端
           result.success(null);
         }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
           // 返回错误信息给客户端
-          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+          result.success(task.getException().toString());
         }
       }
     });
@@ -431,6 +475,36 @@ public class WilddogAuthPlugin implements MethodCallHandler {
     wilddogAuth.signOut();
     // 返回结果给Flutter客户端
     result.success(null);
+  }
+
+  /**
+   * 处理删除用户
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleDelete(MethodCall call, final Result result) {
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // 通过delete()方法删除用户
+    user.delete().addOnCompleteListener(
+        // 完整的监听器
+        new OnCompleteListener<Void>(){
+          // 完成监听方法
+          @Override
+          public void onComplete(Task<Void> task) {
+            // 操作结果是否为成功的
+            if (task.isSuccessful()) {
+              // 返回结果给Flutter客户端
+              result.success(null);
+            }else{
+              Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+              // 返回错误信息给客户端
+              result.success(task.getException().toString());
+            }
+          }
+        }
+    );
   }
 
   /**
@@ -462,8 +536,9 @@ public class WilddogAuthPlugin implements MethodCallHandler {
           // 返回结果给Flutter客户端
           result.success(null);
         }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
           // 返回错误信息给客户端
-          result.error(ERROR_REASON_EXCEPTION, task.getException().getMessage(), null);
+          result.success(task.getException().toString());
         }
       }
     });
@@ -533,6 +608,173 @@ public class WilddogAuthPlugin implements MethodCallHandler {
         }
       }
     );
+  }
+
+  /**
+   * 处理确认验证用户的手机验证码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleVerifyPhoneSmsCode(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义验证码变量，并获取调用参数中的验证码
+    String realSms = arguments.get("realSms");
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // 发送验证用户的手机验证码到手机，通过verifiyPhone(code)方法验证手机验证码
+    user.verifiyPhone(realSms).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete( Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+          // 返回错误信息给客户端
+          result.success(task.getException().toString());
+        }
+      }
+    });
+  }
+
+  /**
+   * 处理发送重置密码的手机验证码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleSendPasswordResetSms(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    String phone = arguments.get("phone");
+    // 发送重置密码的手机验证码
+    wilddogAuth.sendPasswordResetSms(phone).addOnCompleteListener(
+        // 完整的监听器
+        new OnCompleteListener<Void>(){
+          // 完成监听方法
+          @Override
+          public void onComplete(Task<Void> task) {
+            // 操作结果是否为成功的
+            if (task.isSuccessful()) {
+              // 返回结果给Flutter客户端
+              result.success(null);
+            }else{
+              Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+              // 返回错误信息给客户端
+              result.success(task.getException().toString());
+            }
+          }
+        }
+    );
+  }
+
+  /**
+   * 处理确认重置密码的手机验证码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleConfirmPasswordResetSms(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号变量，并获取调用参数中的手机号
+    String phone = arguments.get("phone");
+    // 声明定义验证码变量，并获取调用参数中的验证码
+    String realSms = arguments.get("realSms");
+    // 声明定义密码变量，并获取调用参数中的密码
+    String newPassword = arguments.get("newPassword");
+    // 发送重置密码的手机验证码到手机，通过confirmPasswordResetSms方法验证手机验证码
+    wilddogAuth.confirmPasswordResetSms(phone,realSms,newPassword).addOnCompleteListener(
+            new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete( Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+          // 返回错误信息给客户端
+          result.success(task.getException().toString());
+        }
+      }
+    });
+  }
+
+  /**
+   * 处理更新手机号码
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleUpdatePhone(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号码变量，并获取调用参数中的手机号码
+    String phone = arguments.get("phone");
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // updatePhone()方法用于更新当前用户的手机号信息
+    user.updatePhone(phone).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete(Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+          // 返回错误信息给客户端
+          result.success(task.getException().toString());
+        }
+      }
+    });
+  }
+
+  /**
+   * 处理重新进行手机帐户认证
+   * @param call 客户端传递的调用参数
+   * @param result 返回客户端的结果
+   */
+  private void handleReauthenticatePhone(MethodCall call, final Result result) {
+    // 声明定义参数变量，并获取客户端传递的调用参数
+    @SuppressWarnings("unchecked")
+    Map<String, String> arguments = (Map<String, String>) call.arguments;
+    // 声明定义手机号码变量，并获取调用参数中的手机号码
+    String phone = arguments.get("phone");
+    // 声明定义密码变量，并获取调用参数中的密码
+    String password = arguments.get("password");
+    // getPhoneCredential方法返回一个带有手机号和密码的用户凭证
+    // 当调用signInWithCredential(AuthCredential)或者linkWithCredential(AuthCredential)时候使用
+    AuthCredential credential = WilddogAuthProvider.getPhoneCredential(phone, password);
+    // getCurrentUser()方法在如果有用户认证登录时返回登录用户
+    // 如果没有登录，则返回为空值
+    WilddogUser user = wilddogAuth.getCurrentUser();
+    // reauthenticate(credential)方法用于对用户重新进行身份认证
+    user.reauthenticate(credential).addOnCompleteListener(new OnCompleteListener<Void>() {
+      // 完成监听方法
+      @Override
+      public void onComplete( Task<Void> task) {
+        // 操作结果是否为成功的
+        if (task.isSuccessful()) {
+          // 返回结果给Flutter客户端
+          result.success(null);
+        }else{
+          Log.e(ERROR_REASON_EXCEPTION,task.getException().toString());
+          // 返回错误信息给客户端
+          result.success(task.getException().toString());
+        }
+      }
+    });
   }
 
   /**
@@ -641,7 +883,7 @@ public class WilddogAuthPlugin implements MethodCallHandler {
   }
 
   /**
-   * 完整的登录监听器
+   * 登录的登录监听器
    */
   private class SignInCompleteListener implements OnCompleteListener<AuthResult> {
     // 声明私有、不可变的方法调用结果回调
@@ -707,6 +949,11 @@ public class WilddogAuthPlugin implements MethodCallHandler {
       // 如果UserInfo实例可用，返回对应于指定提供者的用户帐户的电子邮件地址，包含可选
       builder.put("email", userInfo.getEmail());
     }
+    // 用户帐户的手机号码是否不为空值
+    if (userInfo.getEmail() != null) {
+      // 如果UserInfo实例可用，返回对应于指定提供者的用户帐户的手机号码，包含可选
+      builder.put("phone", userInfo.getPhone());
+    }
     // 返回ImmutableMap类型的构造器实例
     return builder;
   }
@@ -732,10 +979,12 @@ public class WilddogAuthPlugin implements MethodCallHandler {
       // 声明定义ImmutableMap类型的用户词典
       // 当前用户是否是匿名登录
       // 当前用户是否已验证电子邮件
+      // 当前用户是否已验证手机号码
       // 当前用户的提供方数据
       ImmutableMap<String, Object> userMap = userInfoToMap(user)
               .put("isAnonymous", user.isAnonymous())
               .put("isEmailVerified", user.isEmailVerified())
+              .put("isPhoneVerified", user.isPhoneVerified())
               .put("providerData", providerDataBuilder.build())
               .build();
       // 返回ImmutableMap类型的用户词典

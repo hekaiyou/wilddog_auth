@@ -25,6 +25,9 @@ class UserInfo {
   /// 获取用户的电子邮件地址。
   String get email => _data['email'];
 
+  /// 获取用户的手机号码。
+  String get phone => _data['phone'];
+
   // 覆盖toString方法。
   @override
   String toString() {
@@ -51,6 +54,9 @@ class WilddogUser extends UserInfo {
 
   /// 用户的电子邮件是否已验证，是则返回true。
   bool get isEmailVerified => _data['isEmailVerified'];
+
+  /// 用户的手机号码是否已验证，是则返回true。
+  bool get isPhoneVerified => _data['isPhoneVerified'];
 
   /// 获取当前用户的ID标识，如果需要可以强制刷新。
   /// 如果用户登出，则完成并显示错误。
@@ -256,7 +262,7 @@ class WilddogAuth {
   /// 异步发送电子邮箱验证邮件。
   ///
   /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制邮箱验证邮件模版。
-  Future<Null> sendEmailVerification() async {
+  Future<String> sendEmailVerification() async {
     // 接收sendEmailVerification方法调用的结果。
     return await channel.invokeMethod("sendEmailVerification");
   }
@@ -264,7 +270,7 @@ class WilddogAuth {
   /// 异步发送重置密码邮件。
   ///
   /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制重置密码邮件模版。
-  Future<Null> sendPasswordResetEmail(String email) async {
+  Future<String> sendPasswordResetEmail(String email) async {
     // 帐号邮箱不能为空。
     assert(email != null);
     // 接收sendPasswordResetEmail方法调用的结果。
@@ -284,7 +290,7 @@ class WilddogAuth {
   ///
   /// 更新邮箱地址会向旧邮箱发送提醒邮件，
   /// 在控制面板“身份认证—登录方式—邮箱登录—配置”中定制更新邮箱邮件模版。
-  Future<Null> updateEmail(String email) async {
+  Future<String> updateEmail(String email) async {
     // 帐号邮箱不能为空。
     assert(email != null);
     // 接收updateEmail方法调用的结果。
@@ -304,11 +310,20 @@ class WilddogAuth {
     return await channel.invokeMethod("signOut");
   }
 
+  /// 删除用户
+  ///
+  /// 从Wilddog Auth系统中删除当前用户，
+  /// 也可以在控制面板"身份认证—用户"中手动删除。
+  Future<String> delete() async {
+    // 接收delete方法调用的结果。
+    return await channel.invokeMethod("delete");
+  }
+
   /// 异步重新进行邮箱帐户认证。
   ///
   /// 用户长时间未登录的情况下进行下列安全敏感操作会失败：
   /// 删除帐户、设置主邮箱地址、更改密码。此时需要重新对用户进行身份认证。
-  Future<Null> reauthenticateEmail({
+  Future<String> reauthenticateEmail({
     String email,
     String password,
   }) async {
@@ -354,16 +369,24 @@ class WilddogAuth {
     // 电子邮件和密码不能为空。
     assert(email != null);
     assert(password != null);
-    // 声明定义数据词典，并接收linkWithEmailAndPassword方法调用的结果。
-    final Map<String, dynamic> data = await channel.invokeMethod(
+    // 声明数据词典。
+    WilddogUser currentUser;
+    // 调用createUserWithPhoneAndPassword方法。
+    await channel.invokeMethod(
       'linkWithEmailAndPassword',
       <String, String>{
         'email': email,
         'password': password,
       },
-    );
-    // 声明定义WilddogUser类的实例变量。
-    final WilddogUser currentUser = new WilddogUser._(data);
+    ).then((onValue){
+      if(onValue.runtimeType==String){
+        // 返回null说明操作失败。
+        currentUser = null;
+      }else{
+        // 定义数据词典，并接收调用的结果。
+        currentUser = new WilddogUser._(onValue);
+      }
+    });
     // 返回WilddogUser实例。
     return currentUser;
   }
@@ -454,6 +477,97 @@ class WilddogAuth {
   Future<String> sendPhoneVerification() async {
     // 接收sendPhoneVerification方法调用的结果。
     return await channel.invokeMethod("sendPhoneVerification");
+  }
+
+  /// 异步确认验证用户的手机验证码。
+  ///
+  /// 发送验证用户的手机验证码后，用户手机验证码需要用此方法验证。
+  Future<String> verifyPhoneSmsCode(String realSms) async {
+    // 验证码不能为空。
+    assert(realSms != null);
+    // 接收verifyPhoneSmsCode方法调用的结果。
+    return await channel.invokeMethod(
+      'verifyPhoneSmsCode',
+      <String, String>{
+        'realSms': realSms,
+      },
+    );
+  }
+
+  /// 异步发送重置密码的手机验证码。
+  ///
+  /// 在控制面板“身份认证—登录方式—手机登录—配置”中定制重置密码短信模版。
+  Future<String> sendPasswordResetSms(String phone) async {
+    // 手机号不能为空。
+    assert(phone != null);
+    // 接收sendPasswordResetSms方法调用的结果。
+    return await channel.invokeMethod('sendPasswordResetSms',
+      <String, String>{
+        'phone': phone,
+      },
+    );
+  }
+
+  /// 异步确认重置密码的手机验证码。
+  ///
+  /// 发送重置密码的手机验证码后，用户手机验证码需要用此方法验证。
+  /// 通过手机号码，验证码来修改密码。之后可以使用新密码进行手机号认证方式登录。
+  Future<String> confirmPasswordResetSms({
+    String phone,
+    String realSms,
+    String newPassword,
+  }) async {
+    // 手机号、验证码和密码不能为空。
+    assert(phone != null);
+    assert(realSms != null);
+    assert(newPassword != null);
+    // 接收confirmPasswordResetSms方法调用的结果。
+    return await channel.invokeMethod(
+      'confirmPasswordResetSms',
+      <String, String>{
+        'phone': phone,
+        'realSms': realSms,
+        'newPassword': newPassword,
+      },
+    );
+  }
+
+  /// 异步更新用户手机号码。
+  ///
+  /// 更新手机号码，如果更新成功，本地缓存也会刷新。
+  /// 如果这个手机号码已经创建过用户，则会更新失败。
+  /// 需要注意的是，要更新用户的手机号码，该用户必须最近登录过。
+  Future<String> updatePhone(String phone) async {
+    // 手机号不能为空。
+    assert(phone != null);
+    // 接收updatePhone方法调用的结果。
+    return await channel.invokeMethod(
+      'updatePhone',
+      <String, String>{
+        'phone': phone,
+      },
+    );
+  }
+
+  /// 异步重新进行手机帐户认证。
+  ///
+  /// 用户长时间未登录的情况下进行下列安全敏感操作会失败：
+  /// 删除帐户、设置主邮箱地址、更改密码。此时需要重新对用户进行身份认证。
+  Future<String> reauthenticatePhone({
+    String phone,
+    String password,
+  }) async {
+    // 手机号和密码不能为空。
+    assert(phone != null);
+    assert(password != null);
+    // 接收reauthenticateEmail方法调用的结果。
+    return await channel.invokeMethod(
+      'reauthenticatePhone',
+      <String, String>{
+        'phone': phone,
+        'password': password,
+      },
+    );
   }
 
   // 接收方法调用的回调。

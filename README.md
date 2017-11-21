@@ -142,8 +142,10 @@ final WilddogUser user = await _auth.currentUser();
  - displayName：用户名称
  - photoUrl：用户头像Url
  - email：电子邮箱地址
+ - phone：手机号码
  - isAnonymous：是否匿名用户
  - isEmailVerified：电子邮箱是否已验证
+ - isPhoneVerified：手机号码是否已验证
 
 #### 更新用户属性
 
@@ -172,12 +174,35 @@ await _auth.updatePassword('654321');
 await _auth.signOut();
 ```
 
+#### 删除用户
+
+从Wilddog Auth系统中删除当前用户，也可以在控制面板"身份认证—用户"中手动删除。
+
+```
+await _auth.delete();
+```
+
 ### 匿名登录
 
-实现匿名身份认证需要在“控制面板 身份认证—登录方式”中打开匿名登录方式。匿名登录的帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
+实现匿名身份认证需要在控制面板“身份认证—登录方式”中打开匿名登录方式。
+
+#### 匿名身份认证
+
+匿名登录的帐号数据将不会被保存，可以通过绑定邮箱认证或第三方认证方式将匿名帐号转成永久帐号。
 
 ```
 final WilddogUser user = await _auth.signInAnonymously();
+```
+
+#### 绑定邮箱认证方式
+
+可以将当前用户与给定的邮箱认证方式绑定，之后支持绑定的邮箱认证方式登录。（必须是未被使用的邮箱）
+
+```
+final WilddogUser user = await _auth.linkWithEmailAndPassword(
+  email: 'hky2014@yeah.net',
+  password: '123456',
+);
 ```
 
 ### 邮箱登录
@@ -234,21 +259,10 @@ await _auth.sendPasswordResetEmail('hky2014@yeah.net');
 
 #### 重新认证邮箱帐户
 
-用户长时间未登录的情况下进行下列安全敏感操作会失败：删除帐户、设置主邮箱地址、更改密码。此时需要重新对用户进行身份认证。
+用户长时间未登录的情况下进行下列安全敏感操作会失败：删除帐户、设置主邮箱地址、更改密码，此时需要重新对用户进行身份认证。
 
 ```
 await _auth.reauthenticateEmail(
-  email: 'hky2014@yeah.net',
-  password: '123456',
-);
-```
-
-#### 绑定邮箱认证方式
-
-如果用户使用其他认证方式登录，可以将当前用户与给定的邮箱认证方式绑定，之后支持绑定的邮箱认证方式登录。（必须是未被使用的邮箱）
-
-```
-final WilddogUser user = await _auth.linkWithEmailAndPassword(
   email: 'hky2014@yeah.net',
   password: '123456',
 );
@@ -264,7 +278,7 @@ final WilddogUser user = await _auth.linkWithEmailAndPassword(
 
 ```
 final WilddogUser user = await _auth.createUserWithPhoneAndPassword(
-  phone: '13823128549',
+  phone: '13800000000',
   password: '123456',
 );
 ```
@@ -275,7 +289,7 @@ final WilddogUser user = await _auth.createUserWithPhoneAndPassword(
 
 ```
 final WilddogUser user = await _auth.signInWithPhoneAndPassword(
-  phone: '13823128549',
+  phone: '13800000000',
   password: '123456',
 );
 ```
@@ -286,6 +300,53 @@ final WilddogUser user = await _auth.signInWithPhoneAndPassword(
 
 ```
 await _auth.sendPhoneVerification();
+```
+
+#### 确认手机验证码
+
+发送验证用户的手机验证码后，通过此方法确认手机验证码是否正确。
+
+```
+await _auth.verifyPhoneSmsCode('208345');
+```
+
+#### 发送重置密码短信
+
+发送重置密码的手机验证码，在控制面板“身份认证—登录方式—手机登录—配置”中定制重置密码短信模版。
+
+```
+await _auth.sendPhoneVerification();
+```
+
+#### 确认重置验证码
+
+发送重置密码的手机验证码后，通过此方法确认重置验证码是否正确。通过手机号码，验证码来修改密码。之后可以使用新密码进行手机号认证方式登录。
+
+```
+await _auth.confirmPasswordResetSms(
+  phone: '13800000000',
+  realSms: '685773',
+  newPassword: '654321',
+);
+```
+
+#### 更新手机号码
+
+更换用户手机号，如果成功，本地缓存也会被刷新。需要注意的是，要更新用户的邮箱地址，该用户必须最近登录过（重新进行身份认证）。
+
+```
+await _auth.updatePhone('13800000000');
+```
+
+#### 重新认证手机帐户
+
+用户长时间未登录的情况下进行下列安全敏感操作会失败：删除帐户、设置主邮箱地址、更改密码，此时需要重新对用户进行身份认证。
+
+```
+await _auth.reauthenticatePhone(
+  phone: '13800000000',
+  password: '123456',
+);
 ```
 
 ## 加入我们
