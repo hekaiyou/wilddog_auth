@@ -316,6 +316,10 @@ int nextHandle = 0;
       // 发送结果给Flutter客户端
       [self sendResult:result forUser:nil error:error];
     }];
+  // 微博登录
+  } else if ([@"WB" isEqualToString:call.method]) {
+    //WBAuthorizeRequest *request = [WBAuthorizeRequest request];
+    //request.redirectURI = @"https://api.weibo.com/oauth2/default.html";
   // 获取用户ID标识符
   } else if ([@"getIdToken" isEqualToString:call.method]) {
     // 获取用户token

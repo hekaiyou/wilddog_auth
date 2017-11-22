@@ -145,7 +145,7 @@ class _MyAppState extends State<MyApp> {
   // 测试使用手机号和密码创建用户。
   Future<String> _testCreateUserWithPhoneAndPassword() async {
     final WilddogUser user = await _auth.createUserWithPhoneAndPassword(
-      phone: '13823128549',
+      phone: '13800000000',
       password: '123456',
     );
     if(user != null){
@@ -158,7 +158,7 @@ class _MyAppState extends State<MyApp> {
   // 测试使用手机号和密码登录。
   Future<String> _testSignInWithPhoneAndPassword() async {
     final WilddogUser user = await _auth.signInWithPhoneAndPassword(
-      phone: '13823128549',
+      phone: '13800000000',
       password: '123456',
     );
     if(user != null){
@@ -190,7 +190,7 @@ class _MyAppState extends State<MyApp> {
 
   // 测试发送重置密码的手机验证码。
   Future<String> _testSendPasswordResetSms() async {
-    String result = await _auth.sendPasswordResetSms('13823128549');
+    String result = await _auth.sendPasswordResetSms('13800000000');
     if(result == null){
       return '发送重置密码的手机验证码成功';
     }else{
@@ -201,7 +201,7 @@ class _MyAppState extends State<MyApp> {
   // 测试确认重置密码的手机验证码。
   Future<String> _testConfirmPasswordResetSms() async {
     String result = await _auth.confirmPasswordResetSms(
-      phone: '13823128549',
+      phone: '13800000000',
       realSms: '849371',
       newPassword: '123456',
     );
@@ -225,7 +225,7 @@ class _MyAppState extends State<MyApp> {
   // 测试重新进行手机帐户认证。
   Future<String> _testReauthenticatePhone() async {
     String result = await _auth.reauthenticatePhone(
-      phone: '13823128549',
+      phone: '13800000000',
       password: '123456',
     );
     if(result == null){
