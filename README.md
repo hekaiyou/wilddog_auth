@@ -348,7 +348,3 @@ await _auth.reauthenticatePhone(
   password: '123456',
 );
 ```
-
-## 加入我们
-
-如果你也想使用Flutter开发一个开源项目，欢迎加入Flutter开荒团，让我们一起开发Flutter的荒漠！*（将你的GitHub账户名发到评论区或私信我，或者加入QQ群271733776联系我们，我会发送邀请邮件给你）*
