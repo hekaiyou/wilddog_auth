@@ -42,6 +42,9 @@ class WilddogUser extends UserInfo {
 
   // 默认的构造方法。
   // 使用数据词典的字典分别创建UserInfo实类，并赋予认证提供方数据列表。
+  //
+  // 在构造函数体运行之前初始化实例变量，并调用父类的构造函数。
+  // 子类构造函数手动调用父类的构造函数，在 : 号后面指定父类的构造函数。
   WilddogUser._(Map<String, dynamic> data)
       : providerData = data['providerData']
       .map((Map<String, dynamic> info) => new UserInfo._(info))
